@@ -5,14 +5,19 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-primary text-primary-foreground">
-      <div className="container mx-auto px-4 py-12">
+    // 1. Adicionado 'relative' e 'overflow-hidden' ao footer original
+    <footer className="bg-primary text-primary-foreground relative overflow-hidden">
+      
+      {/* 2. Adicionado o avião de fundo sutil */}
+      <Plane className="absolute -bottom-8 -right-8 h-48 w-48 text-primary-foreground/10 rotate-[-15deg] opacity-70" />
+
+      {/* 3. Adicionado 'relative z-10' para garantir que o conteúdo original fique na frente */}
+      <div className="container mx-auto px-4 py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           
-          {/* 1. Marca "Viajante" */}
+          {/* 1. Marca "Viajante" (Seu código original) */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              {/* O ícone com fundo Amarelo (accent) e ícone Azul (primary) */}
               <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
                 <Plane className="w-6 h-6 text-primary" />
               </div>
@@ -21,7 +26,6 @@ const Footer = () => {
             <p className="text-sm opacity-90 mb-4">
               Plataforma de Business Intelligence para análise de performance.
             </p>
-            {/* Links Sociais com o tema CVC */}
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-primary hover:brightness-95 transition-smooth">
                 <Facebook className="w-4 h-4" />
@@ -38,7 +42,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* 2. Links Rápidos (Corrigido) */}
+          {/* 2. Links Rápidos (Seu código original) */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Links Rápidos</h3>
             <ul className="space-y-2">
@@ -65,7 +69,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* 3. Informações (Mantido) */}
+          {/* 3. Informações (Seu código original) */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Informações</h3>
             <ul className="space-y-2 text-sm opacity-90">
@@ -77,7 +81,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* 4. Contato (Mantido) */}
+          {/* 4. Contato (Seu código original) */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Contato</h3>
             <ul className="space-y-3">
@@ -97,7 +101,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Barra Inferior */}
+        {/* Barra Inferior (Seu código original) */}
         <div className="pt-8 border-t border-primary-foreground/20 text-center">
           <p className="text-sm opacity-90">
             © {currentYear} Viajante. Todos os direitos reservados.

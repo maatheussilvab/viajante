@@ -9,7 +9,6 @@ import {
   Database,
   LayoutDashboard,
   FileText,
-  UserCircle,
 } from "lucide-react";
 
 const navLinks = [
@@ -26,7 +25,10 @@ export default function Header() {
       <div className="container flex h-16 items-center">
         
         <Link to="/" className="mr-6 flex items-center space-x-2">
-          <Plane className="h-6 w-6 text-primary" />
+          {/* O Ícone do Logo usa 'accent' (amarelo) e 'primary' (azul) */}
+          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+             <Plane className="h-5 w-5 text-primary" />
+          </div>
           <span className="font-bold text-lg text-primary">Viajante</span>
         </Link>
 
@@ -37,8 +39,10 @@ export default function Header() {
               to={link.path}
               className={cn(
                 "flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+                
+                // --- ESTILO DO LINK ATIVO ATUALIZADO ---
                 pathname === link.path
-                  ? "text-primary font-semibold bg-primary/10"
+                  ? "text-accent-foreground bg-accent" // Antes: text-primary bg-primary/10
                   : "text-muted-foreground hover:text-primary",
               )}
             >
@@ -60,7 +64,10 @@ export default function Header() {
               <SheetContent side="left">
                 <nav className="grid gap-6 text-lg font-medium mt-8">
                   <Link to="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
-                    <Plane className="h-6 w-6 text-primary" />
+                    {/* Ícone do Logo no menu mobile */}
+                    <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                       <Plane className="h-5 w-5 text-primary" />
+                    </div>
                     <span className="font-bold text-lg text-primary">Viajante</span>
                   </Link>
                   <Link
@@ -81,8 +88,10 @@ export default function Header() {
                       to={link.path}
                       className={cn(
                         "flex items-center gap-3 transition-colors hover:text-primary",
+                        
+                        // --- ESTILO DO LINK ATIVO (MOBILE) ATUALIZADO ---
                         pathname === link.path
-                          ? "text-primary font-semibold"
+                          ? "text-accent-foreground font-semibold" // Dando destaque com a cor azul (accent-foreground)
                           : "text-muted-foreground",
                       )}
                     >
@@ -94,11 +103,7 @@ export default function Header() {
               </SheetContent>
             </Sheet>
           </div>
-
-          <Button variant="ghost" size="icon">
-            <UserCircle className="h-6 w-6 text-muted-foreground" />
-            <span className="sr-only">Perfil do Usuário</span>
-          </Button>
+          
         </div>
         
       </div>

@@ -1,6 +1,6 @@
 RESERVAS_MENSAL_QUERY = """
     SELECT
-        TO_CHAR(dt_reserva, 'YYYY-MM') AS mes,
+        TO_CHAR(dt_reserva, 'MM-YYYY') AS mes,
         COUNT(id_reserva) AS total_reservas,
         SUM(COALESCE(receita, 0)) AS receita_total,
         SUM(COALESCE(custo, 0)) AS custo_total,
@@ -174,5 +174,6 @@ RENTABILIDADE_DESTINOS_QUERY = """
     HAVING
         COUNT(r.id_reserva) > 0
     ORDER BY
-        margem_media DESC;
+        margem_media DESC
+    LIMIT 5;
 """

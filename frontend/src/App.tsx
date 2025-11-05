@@ -1,6 +1,6 @@
-import "./App.css"; // Vamos remover o CSS antigo daqui
+import "./App.css";
 import Header from "./components/Header";
-import Footer from "./components/Footer"; // Importamos o Footer
+import Footer from "./components/Footer"; 
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -18,7 +18,7 @@ function App() {
         <Header />
         
         <main className="flex-1">
-          <div className="container mx-auto max-w-7xl py-6 md:py-10">
+          <div className="container mx-auto max-w-7xl p-6 md:p-10">
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/powerbi" element={<PowerBIDashboard />} />
@@ -29,7 +29,7 @@ function App() {
           </div>
         </main>
 
-        <Footer />
+        <Footer /> 
       </div>
       <Toaster />
     </TooltipProvider>

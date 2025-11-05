@@ -1,26 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* --- ATUALIZADO --- */
+    --background: 210 40% 98%;    /* Antes: 0 0% 100% (Branco) */
     --foreground: 210 10% 23%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%;             /* (Permanece branco, para "flutuar") */
     --card-foreground: 210 10% 23%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 210 10% 23%;
 
+    /* (Cores da marca permanecem) */
     --primary: 228 81% 38%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
+    /* --- ATUALIZADO (para combinar com o novo fundo) --- */
+    --secondary: 210 40% 94%;      /* Antes: 210 40% 96% */
     --secondary-foreground: 228 81% 38%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 210 10% 40%;
+    --muted: 210 40% 94%;          /* Antes: 210 40% 96% */
+    --muted-foreground: 210 10% 45%; /* Antes: 210 10% 40% */
 
     --accent: 48 100% 50%;
     --accent-foreground: 228 81% 38%;
@@ -28,8 +33,9 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 40% 90%;
-    --input: 210 40% 90%;
+    /* --- ATUALIZADO (para um visual mais suave) --- */
+    --border: 210 40% 90%;         /* Antes: 210 40% 90% (Pode clarear mais se quiser) */
+    --input: 210 40% 90%;          /* Antes: 210 40% 90% */
     --ring: 228 81% 38%;
 
     --radius: 0.75rem;
@@ -43,7 +49,9 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'Segoe UI', 'Roboto', 'Nunito', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -54,5 +62,23 @@
 @layer utilities {
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* --- ANIMAÇÕES ADICIONADAS --- */
+@layer base {
+  @keyframes content-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-content-fade-in {
+    animation: content-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 }

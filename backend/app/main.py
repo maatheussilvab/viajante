@@ -36,63 +36,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def generate_sql_report_text(db: Session) -> str:
-    report_parts = []
-    
-    queries_map = {
-        "a": ("Cálculo do total de reservas, receita, custo e margem por mês (Receita - Custo).", queries.RESERVAS_MENSAL_QUERY),
-        "b": ("Lista os 5 destinos com maior margem média, considerando pelo menos 10 reservas válidas.", queries.TOP_MARGEM_QUERY),
-        "c": ("Receita total e participação percentual por tipo de cliente e canal de venda.", queries.RECEITA_CANAL_QUERY),
-        "d": ("Identificação dos clientes com aumento de receita superior a 20% entre o 1º e o 2º semestre de 2024.", queries.CRESCIMENTO_CLIENTES_QUERY),
-        "e": ("Indicador de fidelidade que combina tempo de parceria, log(reservas) e receita média.", queries.FIDELIDADE_QUERY),
-    }
-
-    report_parts.append("-- Arquivo de Entrega: Respostas SQL para o Desafio Viajante")
-    report_parts.append(f"-- Gerado em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    report_parts.append("--")
-
-    for key, (justification, sql_query) in queries_map.items():
-        report_parts.append(f"\n-- ===========================================================================================")
-        report_parts.append(f"-- PERGUNTA {key.upper()}: {justification}")
-        report_parts.append(f"-- ===========================================================================================")
-        
-        report_parts.append(f"\n{sql_query}\n")
-        report_parts.append(f"-- COMENTÁRIO: A consulta acima calcula a resposta para a pergunta {key.upper()}.")
-        
-        try:
-            results = db.execute(text(sql_query)).mappings().all()
-            report_parts.append(f"\n-- RESULTADO (Primeiras 15 linhas):\n")
-            
-            if results:
-                headers = list(results[0].keys())
-                col_widths = {h: max(len(h), 20) for h in headers}
-                
-                header_line = " | ".join([h.ljust(col_widths[h]) for h in headers])
-                report_parts.append(f"-- {header_line}")
-                report_parts.append("-- " + "-" * len(header_line))
-
-                for row in results[:15]:
-                    row_data = []
-                    for header in headers:
-                        value = row[header]
-                        formatted_value = ""
-                        
-                        if isinstance(value, (int, float)):
-                            formatted_value = f"{value:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
-                        else:
-                            formatted_value = str(value)
-                            
-                        row_data.append(formatted_value.ljust(col_widths[header]))
-                    report_parts.append("-- " + " | ".join(row_data))
-            else:
-                report_parts.append("-- NENHUM RESULTADO ENCONTRADO.")
-                
-        except Exception as e:
-             report_parts.append(f"\n-- ERRO AO EXECUTAR CONSULTA: {str(e)}")
-
-    return "\n".join(report_parts)
-
-
 @app.get("/reservas/mensal")
 def get_reservas_mensal(db: Session = Depends(get_db)):
     result = db.execute(text(queries.RESERVAS_MENSAL_QUERY)).mappings().all()
@@ -142,18 +85,21 @@ def get_reservas_listar(
             ).params(ano=ano, mes_num=mes_num)
         except ValueError:
             raise HTTPException(status_code=400, detail="Formato de mês inválido. Use YYYY-MM.")
+    
+    # --- CORREÇÃO AQUI ---
     if cliente_nome:
-        query = query.filter(models.Reserva.cliente == cliente_nome)
+        query = query.filter(models.Reserva.cliente.ilike(f"%{cliente_nome}%"))
     if destino_nome:
-        query = query.filter(models.Reserva.destino == destino_nome)
+        query = query.filter(models.Reserva.destino.ilike(f"%{destino_nome}%"))
     if canal:
         canal_lower = canal.lower()
         if canal_lower == 'online':
              query = query.filter(text("LOWER(reservas.canal_venda) IN ('online', 'on-line')"))
         else:
-            query = query.filter(models.Reserva.canal_venda == canal)
+            query = query.filter(models.Reserva.canal_venda.ilike(f"%{canal}%"))
     if uf:
-        query = query.filter(models.Cliente.uf == uf)
+        query = query.filter(models.Cliente.uf.ilike(f"%{uf}%"))
+    # --- FIM DA CORREÇÃO ---
     
     return query.all()
 
@@ -196,34 +142,6 @@ async def importar_base(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao processar e salvar os dados: {str(e)}")
-
-
-@app.get("/generate/sql-report")
-def generate_sql_report(db: Session = Depends(get_db)):
-    sql_content = generate_sql_report_text(db)
-
-    return Response(
-        content=sql_content, 
-        media_type="text/plain", 
-        headers={
-            "Content-Disposition": "attachment; filename=relatorio_sql_viajante.sql",
-            "Content-Type": "text/plain; charset=utf-8"
-        }
-    )
-
-BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
-PBIX_PATH = BASE_DIR / "static/Analise_Viajante.pbix"
-
-@app.get("/download/dashboard_pbix")
-def download_pbix_file():
-    if not PBIX_PATH.exists():
-        raise HTTPException(status_code=404, detail="Arquivo .pbix não encontrado no servidor.")
-    
-    return FileResponse(
-        path=PBIX_PATH, 
-        media_type='application/octet-stream', 
-        filename='Analise_Viajante.pbix'
-    )
 
 if __name__ == "__main__":
     uvicorn.run("backend.app.main:app", host="127.0.0.1", port=8000, reload=True)

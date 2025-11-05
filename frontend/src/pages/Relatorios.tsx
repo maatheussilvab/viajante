@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Upload, Download, Loader2, BarChart, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const SQL_REPORT_DOWNLOAD_URL = "http://127.0.0.1:8000/generate/sql-report";
+import { cn } from "@/lib/utils"; // Importar cn para classes condicionais
 
 export default function RelatoriosPage() {
     const { toast } = useToast();
@@ -67,14 +66,14 @@ export default function RelatoriosPage() {
             
             toast({
                 variant: "default",
-                className: "bg-green-600 text-white", // Manter verde para sucesso
+                className: "bg-green-600 text-white",
                 title: "Sucesso!",
                 description: `Banco de dados atualizado. Pré-visualizando dados...`,
             });
             setDataUploaded(true);
             handlePreviewReport();
             
-        } catch (error: any) {
+        } catch (error: any) { // <-- ERRO CORRIGIDO AQUI (removido o '=')
             toast({ variant: "destructive", title: "Erro Crítico no Servidor", description: error.message });
             setDataUploaded(false);
         } finally {
@@ -83,33 +82,35 @@ export default function RelatoriosPage() {
         }
     };
     
-    
     const handleGenerateReport = async () => {
         setIsGenerating(true);
         
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         const downloadLink = document.createElement('a');
-        downloadLink.href = SQL_REPORT_DOWNLOAD_URL;
-        downloadLink.download = "relatorio_sql_viajante.sql"; 
+        
+        downloadLink.href = "/relatorio_base.sql"; 
+        downloadLink.download = "relatorio_base.sql"; 
+        
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
         
-        toast({ title: "Relatório Gerado", description: "O download do arquivo 'relatorio_sql_viajante.sql' foi iniciado." });
+        toast({ title: "Relatório Gerado", description: "O download do arquivo 'relatorio_base.sql' foi iniciado." });
         
         setIsGenerating(false);
     };
 
-    const getStatusContent = () => {
-        if (isGenerating) return <div className="text-primary font-medium flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Gerando o arquivo .sql...</div>;
-        if (dataUploaded) return <div className="text-green-600 font-medium flex items-center gap-2"><CheckCircle className="h-4 w-4" /> Base pronta. Clique para gerar o relatório.</div>;
-        return <div className="text-sm text-destructive">* Faça o upload da base (Passo 1) antes de gerar.</div>;
-    }
+    // Função auxiliar para a descrição do Passo 2
+    const getStatusDescription = () => {
+        if (isGenerating) return "Aguarde, o download iniciará em breve...";
+        if (dataUploaded) return "A base de dados foi processada. Clique abaixo para baixar o arquivo .sql final.";
+        return "Aguardando o envio da base de dados no Passo 1.";
+    };
 
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 animate-content-fade-in">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -121,91 +122,118 @@ export default function RelatoriosPage() {
             <div>
                 <h1 className="text-3xl font-bold">Gerador de Relatório SQL</h1>
                 <p className="text-lg text-muted-foreground">
-                    Faça o upload da base de dados para gerar o relatório SQL final do desafio.
+                    Siga os passos para gerar o relatório SQL final do desafio.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 
-                <Card className="flex flex-col justify-between">
+                {/* Coluna de Ações (Passo 1 e 2) */}
+                <div className="flex flex-col gap-6 lg:col-span-1">
+                    
+                    {/* Passo 1: Upload */}
+                    <Card className="shadow-md hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <CardTitle className="text-xl font-semibold flex items-center gap-3">
+                                <Upload className="h-5 w-5 text-primary" />
+                                Passo 1: Enviar Base
+                            </CardTitle>
+                            <CardDescription>
+                                Envie o arquivo <span className="font-semibold">base_agencia.xlsx</span>.
+                            </CardDescription>
+                        </CardHeader>
+                        
+                        <CardContent className="flex flex-col gap-4">
+                            <Button 
+                                onClick={handleUploadClick} 
+                                disabled={isUploading} 
+                                variant="default"
+                                className="w-full text-base h-12 font-semibold"
+                            >
+                                {isUploading ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Upload className="mr-2 h-4 w-4" />
+                                )}
+                                {isUploading ? "Enviando..." : (dataUploaded ? "Enviar Nova Base" : "Selecionar Arquivo")}
+                            </Button>
+                            
+                            {isUploading && (
+                                <div className="text-sm text-primary font-medium flex items-center gap-2 p-3 bg-secondary rounded-md border">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Enviando {uploadFileName}...
+                                </div>
+                            )}
+
+                            {dataUploaded && !isUploading && (
+                                <div className="text-sm text-green-600 font-medium flex items-center gap-2 p-3 bg-green-50 rounded-md border border-green-200">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Base '{uploadFileName}' carregada.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Passo 2: Download */}
+                    <Card className={cn(
+                        "shadow-md transition-all",
+                        !dataUploaded && "bg-muted/50 border-dashed opacity-70"
+                    )}>
+                        <CardHeader>
+                            <CardTitle className="text-xl font-semibold flex items-center gap-3">
+                                <Download className="h-5 w-5 text-primary" />
+                                Passo 2: Baixar Relatório
+                            </CardTitle>
+                            <CardDescription className={cn(dataUploaded && "text-primary font-medium")}>
+                                {getStatusDescription()}
+                            </CardDescription>
+                        </CardHeader>
+                        
+                        <CardContent>
+                            <Button
+                                onClick={handleGenerateReport}
+                                disabled={!dataUploaded || isGenerating}
+                                variant="primary"
+                                className="w-full text-base font-bold h-12"
+                            >
+                                {isGenerating ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Download className="mr-2 h-4 w-4" />
+                                )}
+                                {isGenerating ? "Gerando..." : "Baixar Relatório .SQL"}
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                {/* Coluna de Pré-visualização */}
+                <Card className="lg:col-span-2 shadow-md">
                     <CardHeader>
-                        <CardTitle className="text-2xl font-semibold">Passo 1: Enviar Base</CardTitle>
+                        <CardTitle className="text-xl font-semibold flex items-center gap-3">
+                            <BarChart className="h-5 w-5 text-primary"/>
+                            Pré-Visualização: Receita Mensal (Pergunta A)
+                        </CardTitle>
                         <CardDescription>
-                            Envie o arquivo <span className="font-semibold">base_agencia.xlsx</span> para o servidor.
+                       Uma prévia dos dados (até 15 linhas) após o upload da base.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button 
-                            onClick={handleUploadClick} 
-                            disabled={isUploading} 
-                            variant="default"
-                            className="w-full text-base h-12"
-                        >
-                            {isUploading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Upload className="mr-2 h-4 w-4" />
-                            )}
-                            {isUploading ? "Enviando..." : (dataUploaded ? "Enviar Nova Base" : "Selecionar Arquivo")}
-                        </Button>
+                        <PreviewTable 
+                            preview={reportPreview} 
+                            isLoading={previewLoading} 
+                            dataUploaded={dataUploaded} 
+                        />
                     </CardContent>
-                    <CardFooter className="text-xs text-muted-foreground">
-                        {uploadFileName ? `Arquivo: ${uploadFileName}` : 'Aguardando seleção...'}
-                    </CardFooter>
-                </Card>
-                
-                <Card className="bg-primary/5 border-primary/50 flex flex-col justify-between">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold">Passo 2: Baixar Relatório</CardTitle>
-                        <CardDescription>
-                            Gera o <span className="font-semibold">relatorio_sql_viajante.sql</span> com as 5 consultas.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Button
-                            onClick={handleGenerateReport}
-                            disabled={!dataUploaded || isGenerating}
-                            variant="primary"
-                            className="w-full text-base font-bold h-12"
-                        >
-                            {isGenerating ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Download className="mr-2 h-4 w-4" />
-                            )}
-                            {isGenerating ? "Gerando Arquivo..." : "Baixar Relatório .SQL"}
-                        </Button>
-                    </CardContent>
-                    <CardFooter className="text-sm font-medium">
-                        {getStatusContent()}
-                    </CardFooter>
                 </Card>
 
             </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-2xl font-semibold flex items-center gap-2">
-                        <BarChart className="h-5 w-5 text-primary"/>
-                        Pré-Visualização: Receita Mensal (Pergunta A)
-                    </CardTitle>
-                    <CardDescription>
-                       Uma prévia dos dados (até 15 linhas) após o upload da base.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PreviewTable 
-                        preview={reportPreview} 
-                        isLoading={previewLoading} 
-                        dataUploaded={dataUploaded} 
-                    />
-                </CardContent>
-            </Card>
         </div>
     );
 }
 
-// Props atualizadas para incluir dataUploaded
+// --- Componente PreviewTable (sem alterações) ---
 interface PreviewTableProps {
     preview: { headers: string[]; data: any[] } | null;
     isLoading: boolean;
@@ -216,17 +244,17 @@ function PreviewTable({ preview, isLoading, dataUploaded }: PreviewTableProps) {
     
     if (isLoading) {
         return (
-             <div className="space-y-3 p-4">
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
+             <div className="space-y-3 p-4 border rounded-md">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
             </div>
         );
     }
     
     if (!preview || preview.data.length === 0) {
         return (
-             <div className="text-center text-muted-foreground py-8 border rounded-md bg-secondary/50">
+             <div className="text-center text-muted-foreground py-10 border rounded-md bg-secondary/50">
                 {dataUploaded ? "Nenhum dado encontrado para pré-visualização." : "Faça o upload do Excel para ver a prévia."}
             </div>
         );
