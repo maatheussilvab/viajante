@@ -17,14 +17,6 @@
     {
       "source": "/(reservas|destinos|clientes|importar)(.*)",
       "destination": "/backend/app/main.py"
-    },
-    {
-      "source": "/assets/(.*)",
-      "destination": "/assets/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }
